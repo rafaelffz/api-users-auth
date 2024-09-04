@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { UserService } from "./UserService";
-import { userSchema } from "./UserValidation";
+import { emailSchema, idSchema, userSchema } from "./UserDTO";
 import { z } from "zod";
 
 export class UserController {
@@ -12,9 +12,8 @@ export class UserController {
 
       await this.userService.createUser(user);
 
-      return reply.status(201).send({ message: "User created successfully" });
+      reply.status(201).send({ message: "User created successfully" });
     } catch (error) {
-      let message: any;
       if (error instanceof z.ZodError) {
         const missingFields = error.errors.filter((err) => err.code === "invalid_type");
         if (missingFields.length > 0) {
@@ -29,10 +28,7 @@ export class UserController {
         return reply.status(400).send({ message: "Invalid input data" });
       }
 
-      if (error instanceof Error) message = error.message;
-      else message = String(error);
-
-      return reply.status(500).send(message || "Unexpected error");
+      return reply.status(500).send(error || "Unexpected error");
     }
   }
 
@@ -42,13 +38,33 @@ export class UserController {
 
       const usersWithoutPass = users.map(({ password, ...user }) => user);
 
-      return reply.status(200).send(usersWithoutPass);
+      reply.status(200).send(usersWithoutPass);
     } catch (error) {
-      let message: any;
-      if (error instanceof Error) message = error.message;
-      else message = String(error);
+      return reply.status(500).send(error || "Unexpected error");
+    }
+  }
 
-      return reply.status(500).send(message || "Unexpected error");
+  async getUser(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { email } = emailSchema.parse(request.body);
+
+      const user = await this.userService.getUser(email);
+
+      reply.status(200).send(user);
+    } catch (error) {
+      reply.status(500).send(error);
+    }
+  }
+
+  async deleteUser(request: FastifyRequest, reply: FastifyReply) {
+    try {
+      const { id } = idSchema.parse(request.params);
+
+      await this.userService.deleteUser(id);
+
+      reply.status(200).send({ message: "User deleted successfully" });
+    } catch (error) {
+      reply.status(500).send(error);
     }
   }
 }

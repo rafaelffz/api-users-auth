@@ -19,4 +19,22 @@ export class UserService {
   async getUsers() {
     return await this.userRepository.getUsers();
   }
+
+  async getUser(email: string) {
+    const user = await this.userRepository.getUserByEmail(email);
+
+    if (!user) throw new Error("User not found!");
+
+    const { password, ...userWithoutPass } = user;
+
+    return { user: userWithoutPass };
+  }
+
+  async deleteUser(id: string) {
+    const user = await this.userRepository.getUserById(id);
+
+    if (!user) throw new Error("User not found!");
+
+    await this.userRepository.deleteUser(id);
+  }
 }
