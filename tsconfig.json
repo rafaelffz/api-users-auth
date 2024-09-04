@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "module": "node16",
+    "target": "ES2022",
+    "strict": true,
+    "strictNullChecks": true,
+    "types": ["./fastify.d.ts"],
+  }
+}
